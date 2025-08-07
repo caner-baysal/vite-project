@@ -1,13 +1,21 @@
 import axios from "axios";
-import { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Form, FormGroup, Input, Label } from "reactstrap";
+import { useEffect, useState } from "react";
+import { Button, Card, CardBody, CardHeader, Form, FormFeedback, FormGroup, Input, Label } from "reactstrap";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const initialValues= {
     email:"",
     password:"",
     terms: false,
-}
+};
+
 const initialErrors = {
+    email: false,
+    password: false,
+    terms: false,
+}
+
+const errorMessages = {
   email: 'Please enter a valid email',
   password: 'Please enter a valid password ',
   terms: "Please agree User Agreement",
@@ -29,19 +37,59 @@ export default function Register() {
 
     let regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/;
 
-    const handleChange = () => {
-        const { name, value, type, checked } = event.target;
+    useEffect(()=>{
+        if(validateEmail(form.email) && regex.test(form.password) && form.terms) {
+            setIsValid(true);
+        } else {
+            setIsValid(true);
+        }
+    }, [form])
+
+    const handleChange = (event) => {
+        let { name, value, type, checked } = event.target;
         value= type === "checkbox" ? checked : value;
         setForm({...form, [name]: value});
+
+        if(name === "email") {
+            if(validateEmail(value)){
+                setErrors({...errors, [name]: false});
+            } else {
+                setErrors({...errors, [name]: true});
+            }
+        }
+        if(name === "password") {
+            if(regex.test(value)){
+                setErrors({...errors, [name]: false});
+            } else {
+                setErrors({...errors, [name]: true});
+            }
+        }
+        if(name === "terms") {
+            if(value){
+                setErrors({...errors, [name]: false});
+            } else {
+                setErrors({...errors, [name]: true});
+            }
+        }
     }
 
     const handleSubmit = () => {
-        axios.get('https://6540a96145bedb25bfc247b4.mockapi.io/api/login')
+        event.preventDefault();
+        if (isValid) return;
+
+        axios
+        .get('https://6540a96145bedb25bfc247b4.mockapi.io/api/login')
         .then((res)=> {
             const user = res.data.find(
-                (item) => item.password = form.password && item.email === form.email
+                (item) => item.password === form.password && item.email === form.email
             );
-        })
+            if(user){
+                setForm(initialValues);
+                    history.pushState("./main")
+                } else {
+                    history.push("/error")
+                };
+            });
     }
 
     return(
@@ -58,8 +106,9 @@ export default function Register() {
                         placeholder="Type your email"
                         onChange={handleChange}
                         value={form.email}
-                        >
-                        </Input>
+                        invalid={errors.email}
+                        />
+                        {errors.email && <FormFeedback>{errorMessages.email}</FormFeedback>}
                     </FormGroup>
                     <FormGroup>
                         <Label for="examplePassword">Password:</Label>
@@ -70,8 +119,9 @@ export default function Register() {
                         placeholder="Type your password"
                         onChange={handleChange}
                         value={form.password}
-                        >
-                        </Input>
+                        invalid={errors.password}
+                        />
+                        {errors.password && <FormFeedback>{errorMessages.password}</FormFeedback>}
                     </FormGroup>
                     <FormGroup check>
                         
@@ -81,10 +131,13 @@ export default function Register() {
                         name="terms"
                         onChange={handleChange}
                         value={form.terms}
+                        invalid={errors.terms}
                         />
+                    
                         <Label htmlFor="terms" check>
                             User Agreement
                         </Label>
+                        {errors.terms && <FormFeedback>{errorMessages.terms}</FormFeedback>}
                     </FormGroup>
                     <FormGroup className="text-center p-4">
                         <Button disabled={!isValid}>

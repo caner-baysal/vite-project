@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Form, FormGroup, Label, Input, Button, Card, CardBody, CardHeader } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Card, CardBody, CardHeader, FormFeedback } from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-
 import axios from 'axios';
 
 const initialForm = {
@@ -11,11 +9,17 @@ const initialForm = {
   terms: false,
 };
 
-const initialErrors = {
+const errorMessages = {
   email: 'Please enter a valid email',
   password: 'Please enter a valid password ',
   terms: "Please agree User Agreement",
 };
+
+const initialErrors= {
+  email: false,
+  password: false,
+  terms: false,
+}
 
 export default function Login() {
   const [form, setForm] = useState(initialForm);
@@ -34,12 +38,35 @@ export default function Login() {
 
   const handleChange = (event) => {
     let { name, value, type, checked } = event.target;
-    value = type == 'checkbox' ? checked : value;
+    value = type === 'checkbox' ? checked : value;
     setForm({ ...form, [name]: value });
+
+    if(name==="email") {
+      if(validateEmail(value)) {
+        setErrors({...errors, [name]: false});
+      } else {
+        setErrors({...errors, [name]: true});
+      }
+    }
+    if(name==="password") {
+      if(regex.test(value)) {
+        setErrors({...errors, [name]: false});
+      } else {
+        setErrors({...errors, [name]: true});
+      }
+    }
+    if(name==="terms") {
+      if(value) {
+        setErrors({...errors, [name]: false});
+      } else {
+        setErrors({...errors, [name]: true});
+      }
+    }
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if(isValid) return;
 
     axios
       .get('https://6540a96145bedb25bfc247b4.mockapi.io/api/login')
@@ -62,7 +89,7 @@ export default function Login() {
       <CardBody>
     <Form onSubmit={handleSubmit}>
       <FormGroup>
-        <Label for="exampleEmail">Email</Label>
+        <Label for="exampleEmail">Email:</Label>
         <Input
           id="exampleEmail"
           name="email"
@@ -70,10 +97,12 @@ export default function Login() {
           type="email"
           onChange={handleChange}
           value={form.email}
+          invalid={errors.email}
         />
+        {errors.email && <FormFeedback>{errorMessages.email}</FormFeedback>}
       </FormGroup>
       <FormGroup>
-        <Label for="examplePassword">Password</Label>
+        <Label for="examplePassword">Password:</Label>
         <Input
           id="examplePassword"
           name="password"
@@ -81,7 +110,9 @@ export default function Login() {
           type="password"
           onChange={handleChange}
           value={form.password}
+          invalid={errors.password}
         />
+        {errors.password && <FormFeedback>{errorMessages.password}</FormFeedback>}
       </FormGroup>
       {/* reactstrap checkbox ekleyelim*/}
       <FormGroup check>
@@ -91,14 +122,16 @@ export default function Login() {
           id="terms"
           checked={form.terms}
           onChange={handleChange}
+          invalid={errors.terms}
         />{' '}
         <Label htmlFor="terms" check>
           I agree to terms of service and privacy policy
         </Label>
+        {errors.terms && <FormFeedback>{errorMessages.terms}</FormFeedback>}
       </FormGroup>
 
       <FormGroup className="text-center p-4">
-        <Button disabled={!isValid} color="primary" disabled={!form.terms}>
+        <Button color="primary" disabled={!isValid}>
           Sign In
         </Button>
       </FormGroup>
