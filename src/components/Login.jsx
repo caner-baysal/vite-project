@@ -11,10 +11,26 @@ const initialForm = {
   terms: false,
 };
 
+const initialErrors = {
+  email: 'Please enter a valid email',
+  password: 'Please enter a valid password ',
+  terms: "Please agree User Agreement",
+};
+
 export default function Login() {
   const [form, setForm] = useState(initialForm);
-
+  const [errors, setErrors] = useState(initialErrors);
+  const [isValid, setIsValid] = useState(false);
   
+  const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+  let regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/;
 
   const handleChange = (event) => {
     let { name, value, type, checked } = event.target;
@@ -82,7 +98,7 @@ export default function Login() {
       </FormGroup>
 
       <FormGroup className="text-center p-4">
-        <Button color="primary" disabled={!form.terms}>
+        <Button disabled={!isValid} color="primary" disabled={!form.terms}>
           Sign In
         </Button>
       </FormGroup>
