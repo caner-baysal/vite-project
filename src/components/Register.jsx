@@ -2,6 +2,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Form, FormFeedback, FormGroup, Input, Label } from "reactstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import React from "react";
+import { useNavigate } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+
 
 const initialValues= {
     email:"",
@@ -26,6 +30,8 @@ export default function Register() {
     const [form, setForm] = useState(initialValues);
     const [errors, setErrors] = useState(initialErrors);
     const [isValid, setIsValid] = useState(false);
+
+    const navigate = useNavigate();
     
     const validateEmail = (email) => {
   return String(email)
@@ -75,6 +81,7 @@ export default function Register() {
 
     const handleSubmit = () => {
         event.preventDefault();
+
         if (isValid) return;
 
         axios
@@ -85,9 +92,9 @@ export default function Register() {
             );
             if(user){
                 setForm(initialValues);
-                    history.pushState("./main")
+                    navigate.push("./success")
                 } else {
-                    history.push("/error")
+                    navigate.push("/error")
                 };
             });
     }
